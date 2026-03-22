@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUCAS BURRIDGE — 2D Rigging & Animation</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+
+  :root {
+    --orange:  #FF4D00;
+    --purple:  #5f2475;
+    --magenta: #cb148c;
+    --dark:    #111111;
+    --darker:  #080808;
+    --mid:     #1A1A1A;
+    --light:   #EDE8E0;
+    --muted:   #6A6460;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--darker); color: var(--light); font-family: Arial, Helvetica, sans-serif; overflow-x: hidden; }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--darker); }
+  ::-webkit-scrollbar-thumb { background: var(--magenta); }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.1rem 3rem;
+    background: rgba(8,8,8,0.92); backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(224,0,122,0.2);
+  }
+  .nav-logo {
+    font-family: 'Libre Baskerville', Times, serif;
+    font-size: 14px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase;
+    color: transparent; -webkit-text-stroke: 1px rgba(237,232,224,0.6); text-decoration: none;
+  }
+  .nav-dot { color: var(--magenta); -webkit-text-stroke: 0; }
+  nav ul { list-style: none; display: flex; gap: 2.5rem; align-items: center; }
+  nav a {
+    font-family: Arial Black, Arial, sans-serif; font-size: 10px; font-weight: 900;
+    text-transform: uppercase; letter-spacing: 0.18em; color: var(--muted); text-decoration: none; transition: color 0.2s;
+  }
+  nav a:hover { color: var(--magenta); }
+
+  /* ─── HERO ─── */
+  #hero {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden; background: var(--darker);
+  }
+
+  .rings-container {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+  }
+
+  /* Pulse keyframes — each ring scales up and glows, then recedes.
+     The wave effect comes from staggered animation-delay per ring. */
+  @keyframes ring-pulse {
+    0%   { transform: scale(1);    opacity: var(--op-base); }
+    40%  { transform: scale(1.06); opacity: var(--op-peak); }
+    70%  { transform: scale(1.02); opacity: var(--op-mid);  }
+    100% { transform: scale(1);    opacity: var(--op-base); }
+  }
+
+  /* Central warm glow — pulses in sync with ring 1 */
+  .ring-glow {
+    position: absolute; width: 180px; height: 180px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,100,0,0.8) 0%, rgba(224,0,122,0.55) 45%, transparent 80%);
+    filter: blur(20px);
+    animation: glow-pulse 3.6s ease-in-out infinite;
+  }
+  @keyframes glow-pulse {
+    0%,100% { transform: scale(1);    opacity: 0.75; }
+    40%      { transform: scale(1.25); opacity: 1;    }
+    70%      { transform: scale(1.08); opacity: 0.85; }
+  }
+
+  .ring {
+    position: absolute;
+    border-radius: 50%;
+    border-style: solid;
+    animation: ring-pulse 3.6s ease-in-out infinite;
+  }
+
+  /* Ring 1 — innermost, full magenta */
+  .r1 {
+    --op-base: 0.9; --op-peak: 1; --op-mid: 0.95;
+    width: 200px; height: 200px;
+    border: 22px solid #E0007A;
+    box-shadow:
+      inset 0 0 18px 6px rgba(0,0,0,0.7),
+      0 0 28px 8px rgba(224,0,122,0.45),
+      0 0 60px 12px rgba(224,0,122,0.2);
+    animation-delay: 0s;
+  }
+
+  .r2 {
+    --op-base: 0.78; --op-peak: 0.95; --op-mid: 0.86;
+    width: 338px; height: 338px;
+    border: 18px solid #B4008E;
+    box-shadow:
+      inset 0 0 16px 5px rgba(0,0,0,0.65),
+      0 0 22px 6px rgba(180,0,142,0.35),
+      0 0 50px 10px rgba(180,0,142,0.15);
+    animation-delay: 0.18s;
+  }
+
+  .r3 {
+    --op-base: 0.65; --op-peak: 0.85; --op-mid: 0.75;
+    width: 488px; height: 488px;
+    border: 15px solid #8400A8;
+    box-shadow:
+      inset 0 0 14px 5px rgba(0,0,0,0.6),
+      0 0 18px 5px rgba(132,0,168,0.3),
+      0 0 44px 9px rgba(132,0,168,0.12);
+    animation-delay: 0.36s;
+  }
+
+  .r4 {
+    --op-base: 0.52; --op-peak: 0.72; --op-mid: 0.62;
+    width: 648px; height: 648px;
+    border: 13px solid #620096;
+    box-shadow:
+      inset 0 0 12px 4px rgba(0,0,0,0.55),
+      0 0 16px 4px rgba(98,0,150,0.25),
+      0 0 38px 8px rgba(98,0,150,0.1);
+    animation-delay: 0.54s;
+  }
+
+  .r5 {
+    --op-base: 0.4; --op-peak: 0.58; --op-mid: 0.49;
+    width: 818px; height: 818px;
+    border: 11px solid #480078;
+    box-shadow:
+      inset 0 0 10px 4px rgba(0,0,0,0.5),
+      0 0 14px 4px rgba(72,0,120,0.22),
+      0 0 32px 7px rgba(72,0,120,0.09);
+    animation-delay: 0.72s;
+  }
+
+  .r6 {
+    --op-base: 0.3; --op-peak: 0.46; --op-mid: 0.38;
+    width: 998px; height: 998px;
+    border: 9px solid #320060;
+    box-shadow:
+      inset 0 0 9px 3px rgba(0,0,0,0.45),
+      0 0 12px 3px rgba(50,0,96,0.18),
+      0 0 26px 6px rgba(50,0,96,0.08);
+    animation-delay: 0.9s;
+  }
+
+  .r7 {
+    --op-base: 0.22; --op-peak: 0.36; --op-mid: 0.29;
+    width: 1188px; height: 1188px;
+    border: 8px solid rgba(28,0,54,0.8);
+    box-shadow:
+      inset 0 0 8px 3px rgba(0,0,0,0.4),
+      0 0 10px 3px rgba(28,0,54,0.15);
+    animation-delay: 1.08s;
+  }
+
+  .r8 {
+    --op-base: 0.16; --op-peak: 0.28; --op-mid: 0.22;
+    width: 1388px; height: 1388px;
+    border: 7px solid rgba(18,0,36,0.7);
+    box-shadow: inset 0 0 7px 2px rgba(0,0,0,0.35);
+    animation-delay: 1.26s;
+  }
+
+  .r9 {
+    --op-base: 0.11; --op-peak: 0.2; --op-mid: 0.15;
+    width: 1598px; height: 1598px;
+    border: 6px solid rgba(12,0,24,0.6);
+    box-shadow: inset 0 0 6px 2px rgba(0,0,0,0.3);
+    animation-delay: 1.44s;
+  }
+
+  .hero-rule {
+    position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%);
+    height: 1px; background: rgba(224,0,122,0.22); pointer-events: none;
+  }
+
+  .hero-text { position: relative; z-index: 10; text-align: center; }
+
+  .hero-name {
+    font-family: 'Libre Baskerville', Times, serif; font-weight: 700;
+    font-size: clamp(44px, 9.5vw, 136px); text-transform: uppercase; letter-spacing: 0.14em;
+    color: transparent; -webkit-text-stroke: 1px rgba(237,232,224,0.48);
+    line-height: 1; display: block;
+  }
+
+  .hero-subtitle {
+    font-family: Arial Black, Arial, sans-serif; font-weight: 900;
+    font-size: clamp(11px, 2.2vw, 27px); text-transform: uppercase; letter-spacing: 0.2em;
+    color: rgba(175,130,195,0.62); margin-top: 0.7rem; display: block;
+  }
+
+  .hero-cta-group { margin-top: 3.5rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+  .btn-primary {
+    font-family: Arial Black, Arial, sans-serif; font-size: 11px; font-weight: 900;
+    text-transform: uppercase; letter-spacing: 0.14em; color: var(--darker);
+    background: var(--magenta); padding: 14px 34px; text-decoration: none; display: inline-block;
+    transition: background 0.18s, transform 0.12s;
+  }
+  .btn-primary:hover { background: var(--orange); transform: translate(-2px,-2px); }
+
+  .btn-secondary {
+    font-family: Arial Black, Arial, sans-serif; font-size: 11px; font-weight: 900;
+    text-transform: uppercase; letter-spacing: 0.14em; color: var(--light);
+    background: transparent; border: 1px solid rgba(224,0,122,0.45); padding: 13px 30px;
+    text-decoration: none; display: inline-block; transition: border-color 0.18s, color 0.18s, transform 0.12s;
+  }
+  .btn-secondary:hover { border-color: var(--magenta); color: var(--magenta); transform: translate(-2px,-2px); }
+
+  .hero-bottom-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--purple), var(--magenta), var(--orange));
+  }
+
+  /* ─── STRIP ─── */
+  .software-strip { background: var(--mid); border-bottom: 1px solid rgba(224,0,122,0.15); padding: 12px 0; overflow: hidden; }
+  .strip-inner { display: flex; gap: 3rem; align-items: center; animation: marquee 24s linear infinite; width: max-content; }
+  @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  .strip-item {
+    font-family: Arial Black, Arial, sans-serif; font-size: 10px; font-weight: 900;
+    text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted);
+    display: flex; align-items: center; gap: 1rem; white-space: nowrap;
+  }
+  .sdot { width: 4px; height: 4px; background: var(--magenta); border-radius: 50%; opacity: 0.7; display: inline-block; }
+
+  /* ─── SECTIONS COMMON ─── */
+  section { padding: 7rem 4rem; }
+
+  .section-label {
+    font-family: Arial Black, Arial, sans-serif; font-size: 9px; font-weight: 900;
+    letter-spacing: 0.3em; text-transform: uppercase; color: var(--magenta);
+    margin-bottom: 1rem; display: flex; align-items: center; gap: 12px;
+  }
+  .section-label::before { content: ''; display: inline-block; width: 26px; height: 1.5px; background: var(--magenta); }
+
+  .section-title {
+    font-family: 'Libre Baskerville', Times, serif; font-weight: 700;
+    font-size: clamp(38px, 5.5vw, 76px); text-transform: uppercase; letter-spacing: 0.04em;
+    line-height: 0.94; color: transparent; -webkit-text-stroke: 1px rgba(237,232,224,0.65); margin-bottom: 0.4rem;
+  }
+
+  /* ─── ABOUT ─── */
+  #about {
+    background: var(--dark);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6rem; align-items: center;
+    position: relative; overflow: hidden;
+  }
+  #about::after {
+    content: ''; position: absolute; right: -180px; bottom: -180px;
+    width: 460px; height: 460px; border-radius: 50%;
+    border: 55px solid rgba(107,0,212,0.05); pointer-events: none;
+  }
+  .about-body { font-family: 'Libre Baskerville', Times, serif; font-size: clamp(15px,1.4vw,17px); line-height: 1.8; color: var(--muted); margin-top: 2.5rem; }
+  .about-body p + p { margin-top: 1.2em; }
+  .about-body em { color: var(--magenta); font-style: italic; }
+  .about-body strong { color: var(--light); font-weight: 700; }
+
+  .about-right { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .stat-block { padding: 2rem 1.5rem; border: 1px solid; position: relative; overflow: hidden; background: rgba(255,255,255,0.015); }
+  .stat-block::after {
+    content: ''; position: absolute; right: -28px; top: -28px; width: 80px; height: 80px;
+    border-radius: 50%; border: 7px solid currentColor; opacity: 0.1;
+  }
+  .stat-block.mg { border-color: rgba(224,0,122,0.22); color: var(--magenta); }
+  .stat-block.pu { border-color: rgba(107,0,212,0.22); color: var(--purple); }
+  .stat-block.or { border-color: rgba(255,77,0,0.22); color: var(--orange); }
+  .stat-block.wh { border-color: rgba(237,232,224,0.08); color: rgba(237,232,224,0.4); }
+  .stat-number { font-family: Arial Black, Arial, sans-serif; font-weight: 900; font-size: 44px; letter-spacing: -0.04em; line-height: 1; color: currentColor; }
+  .stat-desc { font-family: 'Libre Baskerville', Times, serif; font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+
+  /* ─── WORK ─── */
+  #work { background: var(--darker); }
+
+  .work-header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    margin-bottom: 3rem; flex-wrap: wrap; gap: 2rem;
+  }
+
+  /* Tab buttons */
+  .work-filter { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .filter-btn {
+    font-family: Arial Black, Arial, sans-serif; font-size: 9px; font-weight: 900;
+    text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted);
+    background: transparent; border: 1px solid rgba(255,255,255,0.07);
+    padding: 9px 18px; cursor: pointer; transition: all 0.15s;
+  }
+  .filter-btn:hover { color: var(--light); border-color: rgba(255,255,255,0.2); }
+  .filter-btn.active { color: var(--darker); background: var(--magenta); border-color: var(--magenta); }
+
+  /* ── PANEL: ALL (showreel + cards) ── */
+  #panel-all { display: block; }
+  #panel-harmony, #panel-moho, #panel-ae { display: none; }
+
+  /* Showreel embed */
+  .showreel-wrap {
+    position: relative; width: 100%; padding-bottom: 50%; /* ~16:9 but slightly shorter */
+    background: var(--mid); margin-bottom: 2px; overflow: hidden;
+  }
+
+  .showreel-wrap iframe {
+    position: absolute; inset: 0; width: 100%; height: 100%; border: none;
+  }
+
+  /* Placeholder for showreel when no video yet */
+  .video-placeholder {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 1.2rem; background: var(--mid);
+  }
+
+  .placeholder-rings {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none; overflow: hidden;
+  }
+
+  .ph-ring {
+    position: absolute; border-radius: 50%; border-style: solid;
+  }
+  .ph-ring:nth-child(1) { width: 80px;  height: 80px;  border: 9px solid rgba(224,0,122,0.3); box-shadow: inset 0 0 10px 3px rgba(0,0,0,0.6), 0 0 16px 4px rgba(224,0,122,0.2); }
+  .ph-ring:nth-child(2) { width: 160px; height: 160px; border: 8px solid rgba(180,0,142,0.22); box-shadow: inset 0 0 8px 3px rgba(0,0,0,0.5), 0 0 12px 3px rgba(180,0,142,0.15); }
+  .ph-ring:nth-child(3) { width: 260px; height: 260px; border: 7px solid rgba(130,0,168,0.18); box-shadow: inset 0 0 7px 2px rgba(0,0,0,0.45); }
+  .ph-ring:nth-child(4) { width: 380px; height: 380px; border: 6px solid rgba(90,0,140,0.14);  box-shadow: inset 0 0 6px 2px rgba(0,0,0,0.4); }
+  .ph-ring:nth-child(5) { width: 520px; height: 520px; border: 5px solid rgba(60,0,110,0.1);  box-shadow: inset 0 0 5px 2px rgba(0,0,0,0.35); }
+  .ph-ring:nth-child(6) { width: 680px; height: 680px; border: 4px solid rgba(40,0,80,0.08); }
+
+  .ph-glow {
+    position: absolute; width: 100px; height: 100px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,80,0,0.5) 0%, rgba(224,0,122,0.3) 45%, transparent 75%);
+    filter: blur(20px);
+  }
+
+  .placeholder-play {
+    position: relative; z-index: 2;
+    width: 64px; height: 64px; border-radius: 50%;
+    background: rgba(224,0,122,0.15); border: 1.5px solid rgba(224,0,122,0.5);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: background 0.2s, transform 0.15s;
+  }
+  .placeholder-play:hover { background: rgba(224,0,122,0.3); transform: scale(1.08); }
+  .placeholder-play svg { margin-left: 4px; }
+
+  .placeholder-label {
+    position: relative; z-index: 2;
+    font-family: Arial Black, Arial, sans-serif; font-size: 10px; font-weight: 900;
+    text-transform: uppercase; letter-spacing: 0.2em; color: var(--muted);
+  }
+
+  .placeholder-hint {
+    position: relative; z-index: 2;
+    font-family: 'Libre Baskerville', Times, serif; font-style: italic;
+    font-size: 12px; color: #3A3632;
+  }
+
+  /* ── SOFTWARE VIDEO PANEL ── */
+  .software-panel {
+    width: 100%;
+  }
+
+  .software-video-wrap {
+    position: relative; width: 100%; padding-bottom: 56.25%;
+    background: var(--mid); margin-bottom: 1.5rem; overflow: hidden;
+  }
+  .software-video-wrap iframe {
+    position: absolute; inset: 0; width: 100%; height: 100%; border: none;
+  }
+
+  .software-video-wrap .video-placeholder {
+    position: absolute; inset: 0;
+  }
+
+  .software-panel-meta {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 2rem; flex-wrap: wrap;
+  }
+
+  .software-panel-title {
+    font-family: Arial Black, Arial, sans-serif; font-weight: 900;
+    font-size: clamp(22px, 3.5vw, 42px); text-transform: uppercase; letter-spacing: -0.02em;
+    color: transparent; -webkit-text-stroke: 1px rgba(237,232,224,0.6); line-height: 1;
+  }
+
+  .software-panel-desc {
+    font-family: 'Libre Baskerville', Times, serif; font-size: 15px;
+    line-height: 1.7; color: var(--muted); max-width: 520px; margin-top: 0.6rem;
+  }
+  .software-panel-desc em { color: var(--magenta); font-style: italic; }
+
+  .software-tag {
+    font-family: Arial Black, Arial, sans-serif; font-size: 9px; font-weight: 900;
+    text-transform: uppercase; letter-spacing: 0.2em; padding: 8px 16px;
+    border: 1px solid; display: inline-block; margin-top: 1rem; white-space: nowrap;
+  }
+
+  .tag-harmony { color: var(--magenta); border-color: rgba(224,0,122,0.4); }
+  .tag-moho    { color: #9040E0;        border-color: rgba(144,64,224,0.4); }
+  .tag-ae      { color: var(--orange);  border-color: rgba(255,77,0,0.4); }
+
+  /* ─── CONTACT ─── */
+  #contact { background: var(--dark); position: relative; overflow: hidden; }
+
+  .contact-rings { position: absolute; right: -240px; top: 50%; transform: translateY(-50%); pointer-events: none; width: 1px; height: 1px; }
+  .contact-rings .cr { position: absolute; border-radius: 50%; border-style: solid; top: 0; left: 0; transform: translate(-50%,-50%); }
+  .contact-rings .cr:nth-child(1) { width: 220px;  height: 220px;  border: 22px solid rgba(224,0,122,0.25); box-shadow: inset 0 0 18px 5px rgba(0,0,0,0.6), 0 0 20px 6px rgba(224,0,122,0.15); }
+  .contact-rings .cr:nth-child(2) { width: 400px;  height: 400px;  border: 15px solid rgba(160,0,138,0.18); box-shadow: inset 0 0 14px 4px rgba(0,0,0,0.5); }
+  .contact-rings .cr:nth-child(3) { width: 590px;  height: 590px;  border: 12px solid rgba(114,0,160,0.13); box-shadow: inset 0 0 10px 3px rgba(0,0,0,0.4); }
+  .contact-rings .cr:nth-child(4) { width: 790px;  height: 790px;  border: 10px solid rgba(82,0,144,0.1);  box-shadow: inset 0 0 8px  3px rgba(0,0,0,0.35); }
+
+  .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: start; margin-top: 3.5rem; position: relative; z-index: 2; }
+  .contact-intro { font-family: 'Libre Baskerville', Times, serif; font-size: clamp(15px,1.4vw,17px); line-height: 1.8; color: var(--muted); margin-bottom: 2.5rem; }
+  .contact-intro em { color: var(--magenta); font-style: italic; }
+  .contact-links { display: flex; flex-direction: column; gap: 1px; }
+
+  .contact-link {
+    display: flex; align-items: center; gap: 1.2rem; padding: 1.1rem 1.25rem;
+    background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
+    text-decoration: none; color: var(--light); transition: background 0.15s, border-color 0.15s; position: relative;
+  }
+  .contact-link::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; }
+  .contact-link.email::before    { background: var(--magenta); }
+  .contact-link.showreel::before { background: var(--orange); }
+  .contact-link.linkedin::before { background: var(--purple); }
+  .contact-link:hover { background: rgba(224,0,122,0.04); border-color: rgba(224,0,122,0.2); }
+
+  .link-label { font-family: Arial Black, Arial, sans-serif; font-size: 9px; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase; color: #3E3A36; display: block; }
+  .link-value { font-family: 'Libre Baskerville', Times, serif; font-size: 15px; color: var(--light); display: block; margin-top: 2px; }
+  .link-arrow { margin-left: auto; font-size: 18px; color: #2A2A2A; transition: color 0.15s, transform 0.15s; }
+  .contact-link:hover .link-arrow { color: var(--magenta); transform: translate(4px,-4px); }
+
+  .contact-form { display: flex; flex-direction: column; gap: 1.2rem; }
+  .form-group   { display: flex; flex-direction: column; gap: 5px; }
+  .form-label { font-family: Arial Black, Arial, sans-serif; font-size: 8px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.25em; color: #3A3632; }
+  .form-input, .form-textarea {
+    background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.06);
+    border-bottom-color: rgba(224,0,122,0.3); color: var(--light); padding: 12px 14px;
+    font-family: 'Libre Baskerville', Times, serif; font-size: 15px; outline: none;
+    transition: border-color 0.15s, background 0.15s; width: 100%;
+  }
+  .form-input:focus, .form-textarea:focus { background: rgba(224,0,122,0.025); border-color: rgba(224,0,122,0.4); border-bottom-color: var(--magenta); }
+  .form-textarea { min-height: 120px; resize: vertical; }
+  .form-input::placeholder, .form-textarea::placeholder { color: #282420; }
+
+  .btn-submit {
+    font-family: Arial Black, Arial, sans-serif; font-size: 11px; font-weight: 900;
+    text-transform: uppercase; letter-spacing: 0.14em; color: var(--darker);
+    background: var(--magenta); border: none; padding: 16px 40px; cursor: pointer;
+    transition: background 0.15s, transform 0.12s; align-self: flex-start;
+  }
+  .btn-submit:hover { background: var(--purple); color: var(--light); transform: translate(-2px,-2px); }
+
+  /* ─── FOOTER ─── */
+  footer {
+    background: var(--darker); border-top: 1px solid rgba(224,0,122,0.12);
+    padding: 2rem 4rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
+  }
+  .footer-logo { font-family: 'Libre Baskerville', Times, serif; font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 0.22em; color: transparent; -webkit-text-stroke: 1px rgba(237,232,224,0.3); }
+  .footer-copy { font-family: 'Libre Baskerville', Times, serif; font-style: italic; font-size: 12px; color: #342E2A; }
+  .footer-nav { list-style: none; display: flex; gap: 2rem; }
+  .footer-nav a { font-family: Arial Black, Arial, sans-serif; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.18em; color: #342E2A; text-decoration: none; transition: color 0.15s; }
+  .footer-nav a:hover { color: var(--magenta); }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 960px) {
+    #about, .contact-grid { grid-template-columns: 1fr; }
+    .work-grid { grid-template-columns: 1fr 1fr; }
+    .card-featured { grid-column: span 2; }
+    nav ul { display: none; }
+    section { padding: 5rem 2.5rem; }
+    footer { padding: 1.5rem 2.5rem; }
+  }
+  @media (max-width: 600px) {
+    section { padding: 4rem 1.5rem; }
+    nav { padding: 1rem 1.5rem; }
+    .work-grid { grid-template-columns: 1fr; }
+    .card-featured { grid-column: span 1; aspect-ratio: 4/5; }
+    .about-right { grid-template-columns: 1fr 1fr; }
+    footer { padding: 1.5rem; flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── NAV ─── -->
+<nav>
+  <a href="#hero" class="nav-logo">Lucas<span class="nav-dot"> · </span>Burridge</a>
+  <ul>
+    <li><a href="#about">About</a></li>
+    <li><a href="#work">Work</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- ─── HERO ─── -->
+<section id="hero">
+  <div class="rings-container" aria-hidden="true">
+    <div class="ring-glow"></div>
+    <div class="ring r1"></div>
+    <div class="ring r2"></div>
+    <div class="ring r3"></div>
+    <div class="ring r4"></div>
+    <div class="ring r5"></div>
+    <div class="ring r6"></div>
+    <div class="ring r7"></div>
+    <div class="ring r8"></div>
+    <div class="ring r9"></div>
+  </div>
+  <div class="hero-rule" aria-hidden="true"></div>
+  <div class="hero-text">
+    <span class="hero-name">Lucas Burridge</span>
+    <span class="hero-subtitle">2D Rigging &amp; Animation</span>
+    <div class="hero-cta-group">
+      <a href="#work" class="btn-primary">View Work</a>
+      <a href="#contact" class="btn-secondary">Get in Touch</a>
+    </div>
+  </div>
+  <div class="hero-bottom-bar"></div>
+</section>
+
+<!-- ─── STRIP ─── -->
+<div class="software-strip">
+  <div class="strip-inner">
+    <span class="strip-item">ToonBoom Harmony<span class="sdot"></span></span>
+    <span class="strip-item">Moho Pro<span class="sdot"></span></span>
+    <span class="strip-item">After Effects<span class="sdot"></span></span>
+    <span class="strip-item">2D Animation<span class="sdot"></span></span>
+    <span class="strip-item">Character Rigging<span class="sdot"></span></span>
+    <span class="strip-item">Puppet Animation<span class="sdot"></span></span>
+    <span class="strip-item">Facial Performance<span class="sdot"></span></span>
+    <span class="strip-item">IK / FK Systems<span class="sdot"></span></span>
+    <span class="strip-item">ToonBoom Harmony<span class="sdot"></span></span>
+    <span class="strip-item">Moho Pro<span class="sdot"></span></span>
+    <span class="strip-item">After Effects<span class="sdot"></span></span>
+    <span class="strip-item">2D Animation<span class="sdot"></span></span>
+    <span class="strip-item">Character Rigging<span class="sdot"></span></span>
+    <span class="strip-item">Puppet Animation<span class="sdot"></span></span>
+    <span class="strip-item">Facial Performance<span class="sdot"></span></span>
+    <span class="strip-item">IK / FK Systems<span class="sdot"></span></span>
+  </div>
+</div>
+
+<!-- ─── ABOUT ─── -->
+<section id="about">
+  <div>
+    <p class="section-label">About</p>
+    <h2 class="section-title">Rigs That<br>Move &amp;<br>Breathe.</h2>
+    <div class="about-body">
+      <p>I'm <strong>Lucas Burridge</strong> — a 2D puppet rigging artist obsessed with the mechanics of believable character performance. My rigs aren't just technical setups; they're tools <em>built for animators to love using</em>.</p>
+      <p>Whether it's a bouncy mascot in <strong>Moho Pro</strong>, a production-ready character or prop in <strong>ToonBoom Harmony</strong>, or a motion graphics hero in <strong>After Effects</strong> — I build rigs that are intuitive and expressive.</p>
+      <p>Every joint, every deformer, every layer order — <em>obsessively considered</em>.</p>
+    </div>
+  </div>
+  <div class="about-right">
+    <div class="stat-block mg"><div class="stat-number">50+</div><div class="stat-desc">Characters rigged &amp; delivered</div></div>
+    <div class="stat-block pu"><div class="stat-number">3</div><div class="stat-desc">Professional software pipelines</div></div>
+    <div class="stat-block or"><div class="stat-number">6+</div><div class="stat-desc">Years in 2D animation</div></div>
+    <div class="stat-block wh"><div class="stat-number">∞</div><div class="stat-desc">Passion for character craft</div></div>
+  </div>
+</section>
+
+<!-- ─── WORK ─── -->
+<section id="work">
+  <div class="work-header">
+    <div>
+      <p class="section-label">Selected Work</p>
+      <h2 class="section-title">Reel &amp;<br>Projects.</h2>
+    </div>
+    <div class="work-filter">
+      <button class="filter-btn active" onclick="switchPanel('harmony', this)">Harmony</button>
+      <button class="filter-btn" onclick="switchPanel('moho', this)">Moho</button>
+      <button class="filter-btn" onclick="switchPanel('ae', this)">After Effects</button>
+    </div>
+  </div>
+
+  <!-- ── PANEL: HARMONY ── -->
+  <div id="panel-harmony" class="software-panel">
+    <div class="software-video-wrap">
+      <!-- SWAP src with your Harmony showreel embed URL -->
+      <div class="video-placeholder">
+        <div class="placeholder-rings">
+          <div class="ph-glow" style="background: radial-gradient(circle, rgba(224,0,122,0.5), transparent)"></div>
+          <div class="ph-ring" style="border-color: rgba(224,0,122,0.3)"></div>
+          <div class="ph-ring" style="border-color: rgba(180,0,142,0.22)"></div>
+          <div class="ph-ring" style="border-color: rgba(130,0,168,0.18)"></div>
+          <div class="ph-ring" style="border-color: rgba(90,0,140,0.14)"></div>
+          <div class="ph-ring" style="border-color: rgba(60,0,110,0.1)"></div>
+          <div class="ph-ring" style="border-color: rgba(40,0,80,0.08)"></div>
+        </div>
+        <div class="placeholder-play">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><polygon points="6,4 20,12 6,20" fill="rgba(224,0,122,0.9)"/></svg>
+        </div>
+        <span class="placeholder-label">ToonBoom Harmony Reel</span>
+        <span class="placeholder-hint">Replace iframe src with your Harmony embed URL</span>
+      </div>
+    </div>
+    <div class="software-panel-meta">
+      <div>
+        <div class="software-panel-title">ToonBoom<br>Harmony</div>
+        <p class="software-panel-desc">Production-grade puppet rigs built for broadcast and film pipelines. <em>Deformers, facial controls, expression sheets</em> — everything a professional production team needs to animate efficiently at scale.</p>
+        <span class="software-tag tag-harmony">ToonBoom Harmony</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PANEL: MOHO ── -->
+  <div id="panel-moho" class="software-panel">
+    <div class="software-video-wrap">
+      <!-- SWAP src with your Moho showreel embed URL -->
+      <div class="video-placeholder">
+        <div class="placeholder-rings">
+          <div class="ph-glow" style="background: radial-gradient(circle, rgba(107,0,212,0.5), transparent)"></div>
+          <div class="ph-ring" style="border-color: rgba(107,0,212,0.3)"></div>
+          <div class="ph-ring" style="border-color: rgba(130,0,200,0.22)"></div>
+          <div class="ph-ring" style="border-color: rgba(90,0,168,0.18)"></div>
+          <div class="ph-ring" style="border-color: rgba(70,0,140,0.14)"></div>
+          <div class="ph-ring" style="border-color: rgba(50,0,110,0.1)"></div>
+          <div class="ph-ring" style="border-color: rgba(30,0,80,0.08)"></div>
+        </div>
+        <div class="placeholder-play">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><polygon points="6,4 20,12 6,20" fill="rgba(144,64,224,0.9)"/></svg>
+        </div>
+        <span class="placeholder-label">Moho Pro Reel</span>
+        <span class="placeholder-hint">Replace iframe src with your Moho embed URL</span>
+      </div>
+    </div>
+    <div class="software-panel-meta">
+      <div>
+        <div class="software-panel-title">Moho<br>Pro</div>
+        <p class="software-panel-desc">Smart bone and point-animation rigs built for <em>speed and expressiveness</em>. IK chains, layer ordering, and physics setups that give animators the freedom to perform without fighting the rig.</p>
+        <span class="software-tag tag-moho">Moho Pro</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PANEL: AFTER EFFECTS ── -->
+  <div id="panel-ae" class="software-panel">
+    <div class="software-video-wrap">
+      <!-- SWAP src with your After Effects showreel embed URL -->
+      <div class="video-placeholder">
+        <div class="placeholder-rings">
+          <div class="ph-glow" style="background: radial-gradient(circle, rgba(255,77,0,0.5), transparent)"></div>
+          <div class="ph-ring" style="border-color: rgba(255,77,0,0.3)"></div>
+          <div class="ph-ring" style="border-color: rgba(220,60,0,0.22)"></div>
+          <div class="ph-ring" style="border-color: rgba(180,50,0,0.18)"></div>
+          <div class="ph-ring" style="border-color: rgba(140,40,0,0.14)"></div>
+          <div class="ph-ring" style="border-color: rgba(100,30,0,0.1)"></div>
+          <div class="ph-ring" style="border-color: rgba(70,20,0,0.08)"></div>
+        </div>
+        <div class="placeholder-play">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><polygon points="6,4 20,12 6,20" fill="rgba(255,77,0,0.9)"/></svg>
+        </div>
+        <span class="placeholder-label">After Effects Reel</span>
+        <span class="placeholder-hint">Replace iframe src with your AE embed URL</span>
+      </div>
+    </div>
+    <div class="software-panel-meta">
+      <div>
+        <div class="software-panel-title">After<br>Effects</div>
+        <p class="software-panel-desc">DUIK Bassel and Joysticks 'n Sliders rigs for <em>motion graphics and character animation</em>. Dynamic follow-through, secondary motion, and expression-driven controls that feel alive on screen.</p>
+        <span class="software-tag tag-ae">After Effects</span>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ─── CONTACT ─── -->
+<section id="contact">
+  <div class="contact-rings" aria-hidden="true">
+    <div class="cr"></div><div class="cr"></div><div class="cr"></div><div class="cr"></div>
+  </div>
+  <p class="section-label">Contact</p>
+  <h2 class="section-title">Let's Make<br>Something<br>Move.</h2>
+  <div class="contact-grid">
+    <div>
+      <p class="contact-intro">Got a character that needs a <em>soul</em>? I'm available for freelance projects, studio contracts, and long-term collaborations.</p>
+      <div class="contact-links">
+        <a href="mailto:hello@lucasburridge.com" class="contact-link email">
+          <div><span class="link-label">Email</span><span class="link-value">lucasburridgeanimation@gmail.com</span></div>
+          <span class="link-arrow">↗</span>
+        </a>
+        <a href="#" class="contact-link showreel">
+          <div><span class="link-label">Showreel</span><span class="link-value">Watch on Youtube</span></div>
+          <span class="link-arrow">↗</span>
+        </a>
+        <a href="#" class="contact-link linkedin">
+          <div><span class="link-label">LinkedIn</span><span class="link-value">linkedin.com/in/lucasburridge</span></div>
+          <span class="link-arrow">↗</span>
+        </a>
+      </div>
+    </div>
+    <form class="contact-form" onsubmit="handleSubmit(event)">
+      <div class="form-group"><label class="form-label" for="name">Name</label><input class="form-input" type="text" id="name" placeholder="Your name" required></div>
+      <div class="form-group"><label class="form-label" for="email">Email</label><input class="form-input" type="email" id="email" placeholder="your@email.com" required></div>
+      <div class="form-group"><label class="form-label" for="project">Project Type</label><input class="form-input" type="text" id="project" placeholder="e.g. Broadcast series rig, Explainer character..."></div>
+      <div class="form-group"><label class="form-label" for="message">Message</label><textarea class="form-textarea" id="message" placeholder="Tell me about your project..." required></textarea></div>
+      <button type="submit" class="btn-submit">Send Message</button>
+    </form>
+  </div>
+</section>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <div class="footer-logo">Lucas Burridge</div>
+  <ul class="footer-nav">
+    <li><a href="#about">About</a></li>
+    <li><a href="#work">Work</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <p class="footer-copy">© 2026 Lucas Burridge — 2D Rigging &amp; Animation</p>
+</footer>
+
+<script>
+  const panels = ['harmony','moho','ae'];
+
+  function switchPanel(type, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    panels.forEach(id => {
+      const el = document.getElementById('panel-' + id);
+      if (el) { el.style.opacity = '0'; el.style.display = 'none'; }
+    });
+    const target = document.getElementById('panel-' + type);
+    if (target) {
+      target.style.display = 'block';
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => { target.style.opacity = '1'; });
+      });
+    }
+  }
+
+  // Boot: show harmony panel by default, hide everything else
+  panels.forEach(id => {
+    const el = document.getElementById('panel-' + id);
+    if (!el) return;
+    el.style.transition = 'opacity 0.3s ease';
+    el.style.opacity = id === 'harmony' ? '1' : '0';
+    el.style.display  = id === 'harmony' ? 'block' : 'none';
+  });
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('.btn-submit');
+    btn.textContent = 'Sent ✓';
+    btn.style.background = 'var(--purple)';
+    btn.style.color = 'var(--light)';
+    setTimeout(() => {
+      btn.textContent = 'Send Message';
+      btn.style.background = '';
+      btn.style.color = '';
+      e.target.reset();
+    }, 3000);
+  }
+</script>
+</body>
+</html>
